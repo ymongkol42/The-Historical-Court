@@ -16,7 +16,7 @@ from google.genai import types
 from langchain_community.tools import WikipediaQueryRun
 from langchain_community.utilities import WikipediaAPIWrapper
 
-# --- 1. SETUP & CONFIGURATION ---
+# 1. SETUP & CONFIGURATION
 
 # Load .env
 if os.path.exists("parent_and_subagents/.env"):
@@ -35,13 +35,13 @@ RETRY_OPTIONS = types.HttpRetryOptions(initial_delay=1, attempts=6)
 
 def get_gemini_model():
     if use_vertex and use_vertex.upper() == "TRUE" and project_id and location:
-        print(f"✅ Using Vertex AI (Project: {project_id}, Loc: {location})")
+        print(f"Using Vertex AI (Project: {project_id}, Loc: {location})")
         return Gemini(model=model_name, vertexai=True, project=project_id, location=location, retry_options=RETRY_OPTIONS)
     elif api_key:
-        print("✅ Using Standard API Key")
+        print("Using Standard API Key")
         return Gemini(model=model_name, api_key=api_key, retry_options=RETRY_OPTIONS)
     else:
-        raise ValueError("❌ Missing Configuration! Check .env")
+        raise ValueError("Missing Configuration! Check .env")
 
 # Setup Logging
 try:
@@ -50,7 +50,7 @@ try:
 except Exception:
     pass
 
-# --- 2. TOOLS DEFINITION ---
+# 2.TOOLS DEFINITION
 
 def append_to_state(tool_context: ToolContext, field: str, response: str) -> dict[str, str]:
     """Appends data to a specific state key (e.g., pos_data, neg_data)."""
@@ -74,9 +74,9 @@ def write_verdict_file(tool_context: ToolContext, filename: str, content: str) -
         f.write(content)
     return {"status": "success", "path": target_path}
 
-# --- 3. AGENT DEFINITIONS ---
+# 3. AGENT DEFINITIONS
 
-# --- Step 2: The Investigation (Parallel Agents) ---
+# Parallel Agents
 
 # Agent A: The Admirer (Positive Side)
 admirer = Agent(
@@ -136,7 +136,7 @@ investigation_team = ParallelAgent(
     description="Investigates both sides of the history simultaneously."
 )
 
-# --- Step 3: The Trial (The Judge) ---
+# The Judge
 
 judge = Agent(
     name="judge",
@@ -177,7 +177,7 @@ historical_court_loop = LoopAgent(
     max_iterations=3 # Limit loops to prevent infinite running
 )
 
-# --- Step 4: The Verdict (Output) ---
+# Output
 
 verdict_writer = Agent(
     name="verdict_writer",
@@ -206,7 +206,7 @@ verdict_writer = Agent(
     tools=[write_verdict_file]
 )
 
-# --- Main Orchestrator ---
+# Main Orchestrator
 
 court_system = SequentialAgent(
     name="court_system",
@@ -231,7 +231,7 @@ root_agent = Agent(
     sub_agents=[court_system]
 )
 
-# --- 4. EXECUTION ---
+# 4. EXECUTION
 if __name__ == "__main__":
     print(f"⚖️ The Historical Court is in session! (Model: {model_name})")
     print("System ready. Waiting for user input...")
@@ -258,4 +258,4 @@ if __name__ == "__main__":
                 # Optional: break or continue for new topic
                 
     except Exception as e:
-        print(f"\n❌ Error: {e}")
+        print(f"\n Error: {e}")
